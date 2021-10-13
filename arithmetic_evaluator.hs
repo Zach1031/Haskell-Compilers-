@@ -17,22 +17,10 @@ removeWhiteSpace (x:xs)
 --Poorly named function, this parses the string into a list of individual expressions
 calculate :: [Char] -> [Char] -> [[Char]] -> [[Char]]
 calculate (x:xs) y z
-              | null xs = ((x : y) : z)
-              | (checkOperator x) = calculate xs [] ([x]:(y : z))
-              | otherwise = calculate xs (x : y) z
-
---I'm not sure why I made calculate the way I did, but it writes backwards.
---I will change that immediately, because this function and the one underneath is extraneous
-reorient :: [[Char]] -> [[Char]]
-reorient (x:xs)
-              | null xs = [(fixNum x)]
-              | otherwise = (reorient xs) ++ [(fixNum x)]
-
-fixNum :: [Char] -> [Char]
-fixNum (x:xs)
-              | null xs = [x]
-              | otherwise = (fixNum xs) ++ (fixNum [x])
-
+              | null xs = z ++ [(y ++ [x])]
+              | (checkOperator x) = calculate xs [] ((z ++ [y]) ++ [[x]])
+              | otherwise = calculate xs (y ++ [x]) z
+              
 --Self explanatory
 greaterOrEqualPrecedence :: [Char] -> [Char] -> Bool
 greaterOrEqualPrecedence first second
@@ -65,14 +53,14 @@ interperatePostFix input@(x:xs) stack
 --Takes three strings, does the math, then converts the result in a string
 doExpression :: [Char] -> [Char] -> [Char] -> [Char]
 doExpression operand1 operator operand2
-              | operator == "+" = show((read operand1) + (read operand2))
-              | operator == "-" = show((read operand1) - (read operand2))
-              | operator == "*" = show((read operand1) * (read operand2))
-              | operator == "/" = show((read operand1) / (read operand2))
+              | operator == "+" = show((read operand2) + (read operand1))
+              | operator == "-" = show((read operand2) - (read operand1))
+              | operator == "*" = show((read operand2) * (read operand1))
+              | operator == "/" = show((read operand2) / (read operand1))
               | otherwise = "ERROR"
 
 --Actual function the user calls
 evaluate :: [Char] -> Integer
 evaluate x
               | null x = -1
-              | otherwise = interperatePostFix (convertToPostFix (reorient (calculate (removeWhiteSpace x) "" [])) [] []) []
+              | otherwise = interperatePostFix (convertToPostFix (calculate (removeWhiteSpace x) "" []) [] []) []
